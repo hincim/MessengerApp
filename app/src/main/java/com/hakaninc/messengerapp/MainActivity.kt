@@ -9,7 +9,13 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
 import com.hakaninc.messengerapp.databinding.ActivityMainBinding
+import com.hakaninc.messengerapp.fragments.ChatsFragment
+import com.hakaninc.messengerapp.fragments.SearchFragment
+import com.hakaninc.messengerapp.fragments.SettingsFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,11 +31,18 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbarMain)
         supportActionBar!!.title = ""
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+//        val navController = findNavController(R.id.nav_host_fragment_content_main)
+//        appBarConfiguration = AppBarConfiguration(navController.graph)
+//        setupActionBarWithNavController(navController, appBarConfiguration)
 
+        val viewPagerAdapter = ViewPagerAdapter(supportFragmentManager)
 
+        viewPagerAdapter.addFragment(ChatsFragment(),"Chats")
+        viewPagerAdapter.addFragment(SearchFragment(),"Search")
+        viewPagerAdapter.addFragment(SettingsFragment(),"Settings")
+
+        binding.viewPager.adapter = viewPagerAdapter
+        binding.tabLayout.setupWithViewPager(binding.viewPager)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -48,9 +61,58 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+//    override fun onSupportNavigateUp(): Boolean {
+//        val navController = findNavController(R.id.nav_host_fragment_content_main)
+//        return navController.navigateUp(appBarConfiguration)
+//                || super.onSupportNavigateUp()
+//    }
+
+    internal class ViewPagerAdapter(fragmentManager: FragmentManager) : FragmentPagerAdapter(fragmentManager){
+
+        private val fragments : ArrayList<Fragment>
+        private val titles : ArrayList<String>
+
+        init {
+            fragments = ArrayList<Fragment>()
+            titles = ArrayList<String>()
+        }
+
+        override fun getCount(): Int {
+
+            return fragments.size
+        }
+
+        override fun getItem(position: Int): Fragment {
+
+            return fragments[position]
+        }
+
+        fun addFragment(fragment: Fragment, title:String){
+
+            fragments.add(fragment)
+            titles.add(title)
+        }
+
+        override fun getPageTitle(position: Int): CharSequence? {
+            return titles[position]
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

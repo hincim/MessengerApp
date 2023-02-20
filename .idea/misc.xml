@@ -4,8 +4,14 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/drawable/background_left.xml" value="0.1845" />
+        <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/drawable/background_right.xml" value="0.1225" />
+        <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1225" />
         <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/layout/activity_main.xml" value="0.2526041666666667" />
+        <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/layout/content_main.xml" value="0.2526041666666667" />
+        <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/layout/fragment_chats.xml" value="0.2526041666666667" />
         <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/layout/fragment_first.xml" value="0.2526041666666667" />
+        <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/layout/fragment_search.xml" value="0.2526041666666667" />
+        <entry key="..\:/kotlinyeniileriseviye/MessengerApp/app/src/main/res/layout/fragment_settings.xml" value="0.2526041666666667" />
       </map>
     </option>
   </component>
