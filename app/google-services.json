@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "666928885106",
+    "project_id": "messengerapp-f2031",
+    "storage_bucket": "messengerapp-f2031.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666928885106:android:270b0944b39bd965da81eb",
+        "android_client_info": {
+          "package_name": "com.hakaninc.messengerapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "666928885106-sph5ccg6dj4mcgob9cce6s9482lububi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjf9KAfsLturgizIekHXrad0OOh9VBasE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "666928885106-sph5ccg6dj4mcgob9cce6s9482lububi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
