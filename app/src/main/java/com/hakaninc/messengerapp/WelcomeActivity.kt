@@ -9,7 +9,7 @@ import com.hakaninc.messengerapp.databinding.ActivityWelcomeBinding
 
 class WelcomeActivity : AppCompatActivity() {
 
-    var firebaseUser : FirebaseUser ?= null
+    private var firebaseUser : FirebaseUser ?= null
     private lateinit var binding : ActivityWelcomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
