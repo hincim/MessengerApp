@@ -3,6 +3,7 @@ package com.hakaninc.messengerapp.fragments
 import android.Manifest
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -11,19 +12,25 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.tasks.Continuation
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.StorageTask
 import com.google.firebase.storage.UploadTask
+import com.google.firebase.storage.ktx.storage
+import com.hakaninc.messengerapp.R
 import com.hakaninc.messengerapp.databinding.FragmentSettingsBinding
 import com.hakaninc.messengerapp.model.Users
 import java.io.IOException
@@ -48,7 +55,8 @@ class SettingsFragment : Fragment() {
     var firebaseUser: FirebaseUser? = null
     var selected: Uri? = null
     private var storage: StorageReference? = null
-    private var coverChecker : String ?= ""
+    private var coverChecker: String? = ""
+    private var socialChecker: String? = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,7 +113,102 @@ class SettingsFragment : Fragment() {
             pickImageCover()
         }
 
+        binding.setFacebook.setOnClickListener {
+            socialChecker = "facebook"
+            setSocialLinks()
+        }
+
+        binding.setInstagram.setOnClickListener {
+            socialChecker = "instagram"
+            setSocialLinks()
+        }
+
+        binding.setWebsite.setOnClickListener {
+            socialChecker = "website"
+            setSocialLinks()
+        }
+
         return binding.root
+    }
+
+    private fun setSocialLinks() {
+
+        val builder : AlertDialog.Builder? = context?.let { AlertDialog.Builder(it, androidx.appcompat.R.style.Theme_AppCompat_DayNight_Dialog_Alert) }
+
+        if (socialChecker == "website"){
+
+            builder!!.setTitle("Write URL:")
+
+        }else{
+
+            builder!!.setTitle("Write username")
+
+        }
+        val editText = EditText(context)
+
+        if (socialChecker == "website"){
+
+            editText.hint = "e.g www.google.com"
+
+        }else{
+
+            editText.hint = "e.g alparslan"
+
+        }
+
+        builder.setView(editText)
+
+        builder.setPositiveButton("Create", DialogInterface.OnClickListener { dialogInterface, i ->
+
+            val str = editText.text.toString()
+
+            if (str == ""){
+                Toast.makeText(context, "Please write something...", Toast.LENGTH_SHORT).show()
+            }else{
+                saveSocialLink(str)
+            }
+        })
+        builder.setNegativeButton("Cancel", DialogInterface.OnClickListener { dialogInterface, i ->
+
+            dialogInterface.cancel()
+
+        })
+
+        builder.show()
+    }
+
+    private fun saveSocialLink(str: String) {
+
+        val mapSocial = HashMap<String,Any>()
+       /* mapSocial["cover"] = str
+        usersReference!!.setValue(mapSocial)*/
+
+        when(socialChecker){
+            "facebook" -> {
+
+                mapSocial["facebook"] = "https://m.facebook.com/$str"
+
+            }
+
+            "instagram" -> {
+
+                mapSocial["instagram"] = "https://m.instagram.com/$str"
+
+            }
+            "website" -> {
+
+                mapSocial["website"] = "https://$str"
+
+            }
+        }
+        usersReference!!.updateChildren(mapSocial).addOnCompleteListener { task ->
+
+            if (task.isSuccessful){
+
+                Toast.makeText(context, "Updated Successfully.", Toast.LENGTH_SHORT).show()
+
+            }
+        }
     }
 
     private fun pickImageCover() {
@@ -171,16 +274,20 @@ class SettingsFragment : Fragment() {
             }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
 
-        if (requestCode == 1){
+        if (requestCode == 1) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 val intent =
                     Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 startActivityForResult(intent, 2)
                 // bize sonuç verecek bir activity başlat.
             }
-        }else if (requestCode == 3){
+        } else if (requestCode == 3) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 val intent =
                     Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
@@ -195,7 +302,7 @@ class SettingsFragment : Fragment() {
 
         if (requestCode == 2 && resultCode == Activity.RESULT_OK && data != null) {
             selected = data.data
-            Toast.makeText(context,"Uploading",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Uploading Cover Image", Toast.LENGTH_SHORT).show()
             uploadImageToDatabase()
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, selected)
@@ -203,9 +310,9 @@ class SettingsFragment : Fragment() {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-        }else {
+        } else {
             selected = data?.data
-            Toast.makeText(context,"Uploading",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Uploading Profile Image", Toast.LENGTH_SHORT).show()
             uploadImageToDatabase()
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, selected)
@@ -219,11 +326,9 @@ class SettingsFragment : Fragment() {
     }
 
     private fun uploadImageToDatabase() {
-        val progressBar = ProgressDialog(context)
+        /*val progressBar = ProgressDialog(context)
         progressBar.setMessage("image is uploading, please wait...")
-        progressBar.show()
-        println(selected)
-        println("errorrrrr")
+        progressBar.show()*/
 
         if (selected != null){
             val fileRef = storage?.child(System.currentTimeMillis().toString() + ".jpg")
@@ -260,7 +365,7 @@ class SettingsFragment : Fragment() {
                         coverChecker = ""
 
                     }
-                    progressBar.dismiss()
+                    // progressBar.dismiss()
                 }
             }
         }
@@ -272,3 +377,4 @@ class SettingsFragment : Fragment() {
         fragmentSettingsbinding = null
     }
 }
+
