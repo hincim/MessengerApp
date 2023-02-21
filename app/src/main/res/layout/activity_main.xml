@@ -16,8 +16,8 @@
             android:id="@+id/toolbar_main"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:backgroundTint="@color/button_material_dark"
+            android:background="@color/app"
+            android:backgroundTint="@color/app"
             app:popupTheme="@style/Theme.MessengerApp.PopupOverlay">
 
             <de.hdodenhof.circleimageview.CircleImageView
@@ -50,7 +50,7 @@
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#484749"
+        android:background="@color/app"
         app:tabIndicatorColor="@color/white"
         >
     </com.google.android.material.tabs.TabLayout>
