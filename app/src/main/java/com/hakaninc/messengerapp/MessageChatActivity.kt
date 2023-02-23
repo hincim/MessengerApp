@@ -12,10 +12,7 @@ import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageTask
 import com.google.firebase.storage.UploadTask
@@ -32,11 +29,23 @@ class MessageChatActivity : AppCompatActivity() {
     var firebaseUser : FirebaseUser ?= null
     var chatsAdapter : ChatsAdapter ?= null
     var mChatList : List<Chat> ?= null
+    var reference : DatabaseReference ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMessageChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        setSupportActionBar(binding.toolbarMessageChat)
+        supportActionBar!!.title = ""
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        binding.toolbarMessageChat.setNavigationOnClickListener {
+
+            val intent = Intent(this, WelcomeActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+            finish()
+        }
 
         intent.getStringExtra("visit_id")?.let {
             userIDVisit = intent.getStringExtra("visit_id")!!
@@ -49,10 +58,10 @@ class MessageChatActivity : AppCompatActivity() {
         binding.recyclerViewChats.layoutManager = linearLayoutManager
 
 
-        val reference = FirebaseDatabase.getInstance().reference
+        reference = FirebaseDatabase.getInstance().reference
             .child("Users").child(userIDVisit)
 
-        reference.addValueEventListener(object : ValueEventListener{
+        reference!!.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
 
                 val user : Users ?= snapshot.getValue(Users::class.java)
@@ -91,6 +100,8 @@ class MessageChatActivity : AppCompatActivity() {
             startActivityForResult(Intent.createChooser(intent,"Pick Image"),438)
 
         }
+
+        seenMessage(userIDVisit)
     }
 
 
@@ -209,14 +220,17 @@ class MessageChatActivity : AppCompatActivity() {
                 for (s in snapshot.children){
                     val chat = s.getValue(Chat::class.java)
 
-                    if (chat!!.receiver.equals(senderID) && chat.sender.equals(receiverID)
-                        || chat.receiver.equals(receiverID) && chat.sender.equals(senderID)){
+                    if (chat?.receiver.equals(senderID) && chat?.sender.equals(receiverID)
+                        || chat?.receiver.equals(receiverID) && chat?.sender.equals(senderID)){
 
 
-                        (mChatList as ArrayList<Chat>).add(chat)
+                        (mChatList as ArrayList<Chat>).add(chat!!)
                     }
-                    chatsAdapter = ChatsAdapter(this@MessageChatActivity, mChatList as ArrayList<Chat>,receiverImageUrl!!)
-                    binding.recyclerViewChats.adapter = chatsAdapter
+                    receiverImageUrl?.let {
+                        chatsAdapter = ChatsAdapter(this@MessageChatActivity, (mChatList as ArrayList<Chat>),receiverImageUrl)
+                        binding.recyclerViewChats.adapter = chatsAdapter
+                    }
+
                 }
             }
 
@@ -225,6 +239,43 @@ class MessageChatActivity : AppCompatActivity() {
             }
 
         })
+    }
+
+    var seenListener : ValueEventListener ?= null
+    private fun seenMessage(userID : String){
+
+        val reference = FirebaseDatabase.getInstance().reference.child("Chats")
+
+        seenListener = reference.addValueEventListener(object : ValueEventListener{
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                for (s in snapshot.children){
+
+                    val chat = s.getValue(Chat::class.java)
+
+                    if (chat!!.receiver.equals(firebaseUser!!.uid) && chat.sender.equals(userID)){
+
+                        val hashMap = HashMap<String, Any>()
+                        hashMap["isseen"] = true
+                        s.ref.updateChildren(hashMap)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        reference!!.removeEventListener(seenListener!!)
+
+
     }
 }
 

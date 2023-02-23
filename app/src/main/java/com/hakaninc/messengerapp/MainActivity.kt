@@ -16,6 +16,7 @@ import com.hakaninc.messengerapp.databinding.ActivityMainBinding
 import com.hakaninc.messengerapp.fragments.ChatsFragment
 import com.hakaninc.messengerapp.fragments.SearchFragment
 import com.hakaninc.messengerapp.fragments.SettingsFragment
+import com.hakaninc.messengerapp.model.Chat
 import com.hakaninc.messengerapp.model.Users
 import com.squareup.picasso.Picasso
 
@@ -38,18 +39,38 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbarMain)
         supportActionBar!!.title = ""
 
-//        val navController = findNavController(R.id.nav_host_fragment_content_main)
-//        appBarConfiguration = AppBarConfiguration(navController.graph)
-//        setupActionBarWithNavController(navController, appBarConfiguration)
+        val ref = FirebaseDatabase.getInstance().reference.child("Chats")
+        ref.addValueEventListener(object : ValueEventListener{
 
-        val viewPagerAdapter = ViewPagerAdapter(supportFragmentManager)
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val viewPagerAdapter = ViewPagerAdapter(supportFragmentManager)
+                var countUnreadMessages = 0
 
-        viewPagerAdapter.addFragment(ChatsFragment(), "Chats")
-        viewPagerAdapter.addFragment(SearchFragment(), "Search")
-        viewPagerAdapter.addFragment(SettingsFragment(), "Settings")
+                for (s in snapshot.children){
 
-        binding.viewPager.adapter = viewPagerAdapter
-        binding.tabLayout.setupWithViewPager(binding.viewPager)
+                    val chat = s.getValue(Chat::class.java)
+
+                    if (chat!!.receiver.equals(firebaseUser!!.uid) && !chat.isseen){
+
+                        countUnreadMessages += 1
+                    }
+                }
+                if (countUnreadMessages == 0){
+                    viewPagerAdapter.addFragment(ChatsFragment(), "Chats")
+                }else{
+                    viewPagerAdapter.addFragment(ChatsFragment(), "($countUnreadMessages) Chats")
+                }
+
+                viewPagerAdapter.addFragment(SearchFragment(), "Search")
+                viewPagerAdapter.addFragment(SettingsFragment(), "Settings")
+                binding.viewPager.adapter = viewPagerAdapter
+                binding.tabLayout.setupWithViewPager(binding.viewPager)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
 
         refUsers?.addValueEventListener(object : ValueEventListener{
 
