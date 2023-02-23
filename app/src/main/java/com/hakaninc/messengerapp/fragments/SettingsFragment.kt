@@ -335,7 +335,7 @@ class SettingsFragment : Fragment() {
             var uploadTask : StorageTask<*>
             uploadTask = fileRef!!.putFile(selected!!)
 
-            uploadTask.continueWithTask((Continuation <UploadTask.TaskSnapshot, Task<Uri>>{ task ->
+            uploadTask.continueWithTask(Continuation <UploadTask.TaskSnapshot, Task<Uri>>{ task ->
                 if (!task.isSuccessful){
 
                     task.exception?.let {
@@ -344,7 +344,7 @@ class SettingsFragment : Fragment() {
                 }
                 return@Continuation fileRef.downloadUrl
 
-            })).addOnCompleteListener { task ->
+            }).addOnCompleteListener { task ->
                 if (task.isSuccessful){
 
                     val downloadUrl = task.result

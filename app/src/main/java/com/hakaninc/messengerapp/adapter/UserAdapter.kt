@@ -55,6 +55,8 @@ class UserAdapter(val mContext : Context,
 
                 }
             })
+
+            builder.show()
         }
     }
 
