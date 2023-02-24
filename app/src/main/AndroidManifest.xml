@@ -42,7 +42,7 @@
 
         <service
             android:name=".notifications.MyFirebaseMessaging"
-            android:exported="false"
+            android:exported="true"
             android:enabled="true"
             tools:ignore="Instantiatable">
             <intent-filter>
@@ -50,7 +50,8 @@
             </intent-filter>
         </service>
 
-        <service android:name="notifications.MyFirebaseInstanceId" android:exported="true"
+        <service android:name="notifications.MyFirebaseInstanceId"
+            android:exported="true"
             tools:ignore="MissingClass"
             android:enabled="true">
             <intent-filter>

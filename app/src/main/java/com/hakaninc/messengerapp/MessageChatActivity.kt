@@ -20,12 +20,12 @@ import com.hakaninc.messengerapp.adapter.ChatsAdapter
 import com.hakaninc.messengerapp.databinding.ActivityMessageChatBinding
 import com.hakaninc.messengerapp.model.Chat
 import com.hakaninc.messengerapp.model.Users
-import com.hakaninc.messengerapp.notifications.Client
-import com.hakaninc.messengerapp.notifications.Data
-import com.hakaninc.messengerapp.notifications.Sender
-import com.hakaninc.messengerapp.notifications.Token
+import com.hakaninc.messengerapp.notifications.*
 import com.hakaninc.messengerapp.service.APIService
 import com.squareup.picasso.Picasso
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.create
 
 class MessageChatActivity : AppCompatActivity() {
@@ -156,34 +156,32 @@ class MessageChatActivity : AppCompatActivity() {
 
                 })
 
-
-
-                // implement the push notifications using fcm
-                val reference = FirebaseDatabase.getInstance().reference
-                    .child("Users").child(firebaseUser!!.uid)
-
-                reference.addValueEventListener(object : ValueEventListener{
-                    override fun onDataChange(snapshot: DataSnapshot) {
-
-                        val user = snapshot.getValue(Users::class.java)
-
-                        if (notify){
-
-                            if (user != null) {
-                                sendNotification(receiverID, user.username, message)
-                            }
-                        }
-                        notify = false
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-
-                    }
-
-                })
             }
         }
 
+        // implement the push notifications using fcm
+        val usersReference = FirebaseDatabase.getInstance().reference
+            .child("Users").child(firebaseUser!!.uid)
+
+        usersReference.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                val user = snapshot.getValue(Users::class.java)
+
+                if (notify){
+
+                    if (user != null) {
+                        sendNotification(receiverID, user.username, message)
+                    }
+                }
+                notify = false
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+        })
     }
 
     private fun sendNotification(receiverID: String, username: String?, message: String) {
@@ -202,6 +200,29 @@ class MessageChatActivity : AppCompatActivity() {
                     val data = Data(firebaseUser?.uid, R.mipmap.ic_launcher, "$username: $message", "New Message", userIDVisit)
 
                     val sender = token?.let { Sender(data, it.token.toString()) }
+
+                    apiService!!.sendNotification(sender)
+                        .enqueue(object : Callback<MyResponse>{
+
+                            override fun onResponse(
+                                call: Call<MyResponse>,
+                                response: Response<MyResponse>
+                            ) {
+
+                                if (response.code() == 200){
+
+                                    if (response.body()!!.success !== 1){
+
+                                        Toast.makeText(this@MessageChatActivity, "Failed, Nothing happen.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+
+                            override fun onFailure(call: Call<MyResponse>, t: Throwable) {
+
+                            }
+
+                        })
                 }
             }
 

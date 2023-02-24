@@ -6,17 +6,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.iid.FirebaseInstanceIdReceiver
+import com.google.firebase.messaging.FirebaseMessaging
 import com.hakaninc.messengerapp.R
 import com.hakaninc.messengerapp.adapter.UserAdapter
 import com.hakaninc.messengerapp.databinding.FragmentChatsBinding
 import com.hakaninc.messengerapp.model.ChatList
 import com.hakaninc.messengerapp.model.Users
+import com.hakaninc.messengerapp.notifications.Token
 
 
 class ChatsFragment : Fragment() {
@@ -64,7 +68,16 @@ class ChatsFragment : Fragment() {
             }
         })
 
+        updateToken(FirebaseMessaging.getInstance().token)
+
         return binding.root
+    }
+
+    private fun updateToken(token: Task<String>) {
+
+        val ref = FirebaseDatabase.getInstance().reference.child("Tokens")
+        val token1 = Token(token.result)
+        ref.child(firebaseUser!!.uid).setValue(token1)
     }
 
     private fun retrieveChatList(){

@@ -31,12 +31,15 @@ class MyFirebaseMessaging : FirebaseMessagingService() {
 
         if (firebaseUser != null && sented == firebaseUser.uid){
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            if (currentOnlineUser != user){
 
-                sendOreoNotification(mRemoteMessage)
-            }else{
-                sendNotification(mRemoteMessage)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
 
+                    sendOreoNotification(mRemoteMessage)
+                }else{
+                    sendNotification(mRemoteMessage)
+
+                }
             }
         }
     }
