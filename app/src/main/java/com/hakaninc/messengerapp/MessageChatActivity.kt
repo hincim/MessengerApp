@@ -20,7 +20,13 @@ import com.hakaninc.messengerapp.adapter.ChatsAdapter
 import com.hakaninc.messengerapp.databinding.ActivityMessageChatBinding
 import com.hakaninc.messengerapp.model.Chat
 import com.hakaninc.messengerapp.model.Users
+import com.hakaninc.messengerapp.notifications.Client
+import com.hakaninc.messengerapp.notifications.Data
+import com.hakaninc.messengerapp.notifications.Sender
+import com.hakaninc.messengerapp.notifications.Token
+import com.hakaninc.messengerapp.service.APIService
 import com.squareup.picasso.Picasso
+import retrofit2.create
 
 class MessageChatActivity : AppCompatActivity() {
 
@@ -30,6 +36,9 @@ class MessageChatActivity : AppCompatActivity() {
     var chatsAdapter : ChatsAdapter ?= null
     var mChatList : List<Chat> ?= null
     var reference : DatabaseReference ?= null
+
+    var notify = false
+    var apiService : APIService ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +55,8 @@ class MessageChatActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+
+        apiService = Client.Client.getClient("https://fcm.googleapis.com/")?.create(APIService::class.java)
 
         intent.getStringExtra("visit_id")?.let {
             userIDVisit = intent.getStringExtra("visit_id")!!
@@ -79,7 +90,7 @@ class MessageChatActivity : AppCompatActivity() {
         })
 
         binding.sendMessageBtn.setOnClickListener {
-
+            notify = true
             val message = binding.textMessage.text.toString()
 
             if (message == ""){
@@ -93,7 +104,7 @@ class MessageChatActivity : AppCompatActivity() {
         }
 
         binding.attactImageFileBtn.setOnClickListener {
-
+            notify = true
             val intent = Intent()
             intent.action = Intent.ACTION_GET_CONTENT
             intent.type = "image/*"
@@ -150,9 +161,55 @@ class MessageChatActivity : AppCompatActivity() {
                 // implement the push notifications using fcm
                 val reference = FirebaseDatabase.getInstance().reference
                     .child("Users").child(firebaseUser!!.uid)
+
+                reference.addValueEventListener(object : ValueEventListener{
+                    override fun onDataChange(snapshot: DataSnapshot) {
+
+                        val user = snapshot.getValue(Users::class.java)
+
+                        if (notify){
+
+                            if (user != null) {
+                                sendNotification(receiverID, user.username, message)
+                            }
+                        }
+                        notify = false
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+
+                    }
+
+                })
             }
         }
 
+    }
+
+    private fun sendNotification(receiverID: String, username: String?, message: String) {
+
+        val ref  = FirebaseDatabase.getInstance().reference.child("Tokens")
+
+        val query = ref.orderByKey().equalTo(receiverID)
+
+        query.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                for (s in snapshot.children){
+
+                    val token : Token ?= s.getValue(Token::class.java)
+
+                    val data = Data(firebaseUser?.uid, R.mipmap.ic_launcher, "$username: $message", "New Message", userIDVisit)
+
+                    val sender = token?.let { Sender(data, it.token.toString()) }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+        })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -198,8 +255,38 @@ class MessageChatActivity : AppCompatActivity() {
                     messageHashMap["messageID"] = messageID
 
                     ref.child("Chats").child(messageID!!).setValue(messageHashMap)
+                        .addOnCompleteListener {
 
-                    progressBar.dismiss()
+                            if (it.isSuccessful){
+
+                                progressBar.dismiss()
+
+                                // implement the push notifications using fcm
+                                val reference = FirebaseDatabase.getInstance().reference
+                                    .child("Users").child(firebaseUser!!.uid)
+
+                                reference.addValueEventListener(object : ValueEventListener{
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+
+                                        val user = snapshot.getValue(Users::class.java)
+
+                                        if (notify){
+
+                                            if (user != null) {
+                                                sendNotification(userIDVisit, user.username, "send you an image.")
+                                            }
+                                        }
+                                        notify = false
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+
+                                    }
+
+                                })
+                            }
+                        }
+
                 }
             }
         }
