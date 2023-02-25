@@ -1,16 +1,24 @@
 package com.hakaninc.messengerapp.adapter
 
 import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 import com.hakaninc.messengerapp.R
+import com.hakaninc.messengerapp.ViewFullImageActivity
+import com.hakaninc.messengerapp.WelcomeActivity
 import com.hakaninc.messengerapp.databinding.MessageItemLeftBinding
 import com.hakaninc.messengerapp.databinding.MessageItemRightBinding
 import com.hakaninc.messengerapp.databinding.UserSearchItemLayoutBinding
@@ -84,7 +92,35 @@ class ChatsAdapter(
 
                 holder.show_text_message!!.visibility = View.GONE
                 holder.right_image_view!!.visibility = View.VISIBLE
-                // Picasso.get().load(chat.url).into(holder.right_image_view)
+                Picasso.get().load(chat.url).into(holder.right_image_view)
+
+                holder.right_image_view!!.setOnClickListener {
+
+                    val options = arrayOf<CharSequence>(
+                        "View Full Image",
+                        "Delete Image",
+                        "Cancel"
+                    )
+
+                    var builder : AlertDialog.Builder = AlertDialog.Builder(holder.itemView.context)
+                    builder.setTitle("What do you want?")
+
+                    builder.setItems(options, DialogInterface.OnClickListener{
+                        dialogInterface, i ->
+
+                        if (i == 0){
+
+                            val intent = Intent(mContext, ViewFullImageActivity::class.java)
+                            intent.putExtra("url", chat.url)
+                            mContext.startActivity(intent)
+
+                        } else if (i == 1){
+
+                            deleteSentMessage(position, holder)
+                        }
+                    })
+                    builder.show()
+                }
 
                 // image message - left side
             } else if (!chat.sender.equals(firebaseUser!!.uid)) {
@@ -92,11 +128,60 @@ class ChatsAdapter(
                 holder.show_text_message!!.visibility = View.GONE
                 holder.left_image_view!!.visibility = View.VISIBLE
                 Picasso.get().load(chat.url).into(holder.left_image_view)
+
+                holder.left_image_view!!.setOnClickListener {
+
+                    val options = arrayOf<CharSequence>(
+                        "View Full Image",
+                        "Cancel"
+                    )
+
+                    var builder : AlertDialog.Builder = AlertDialog.Builder(holder.itemView.context)
+                    builder.setTitle("What do you want?")
+
+                    builder.setItems(options, DialogInterface.OnClickListener{
+                            dialogInterface, i ->
+
+                        if (i == 0){
+
+                            val intent = Intent(mContext, ViewFullImageActivity::class.java)
+                            intent.putExtra("url", chat.url)
+                            mContext.startActivity(intent)
+
+                        }
+                    })
+                    builder.show()
+                }
+
             }
         }
         // text messages
         else{
             holder.show_text_message!!.text = chat.message
+
+            if (firebaseUser.uid == chat.sender){
+
+                holder.show_text_message!!.setOnClickListener {
+
+                    val options = arrayOf<CharSequence>(
+                        "Delete Message",
+                        "Cancel"
+                    )
+
+                    var builder : AlertDialog.Builder = AlertDialog.Builder(holder.itemView.context)
+                    builder.setTitle("What do you want?")
+
+                    builder.setItems(options, DialogInterface.OnClickListener{
+                            dialogInterface, i ->
+                        if (i == 0){
+
+                            deleteSentMessage(position, holder)
+                        }
+                    })
+                    builder.show()
+                }
+            }
+
 
         }
 
@@ -134,4 +219,33 @@ class ChatsAdapter(
     override fun getItemCount(): Int {
         return mChatList.size
     }
+
+    private fun deleteSentMessage(position : Int, holder : ChatsAdapter.ChatDesignViewHolder){
+
+        val ref = FirebaseDatabase.getInstance().reference.child("Chats")
+            .child(mChatList.get(position).messageID)
+            .removeValue()
+            .addOnCompleteListener {
+                if (it.isSuccessful){
+
+                    Toast.makeText(holder.itemView.context, "Deleted", Toast.LENGTH_SHORT).show()
+                }else {
+                    Toast.makeText(holder.itemView.context, "Failed, Not Deleted", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

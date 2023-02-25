@@ -23,20 +23,18 @@
        </de.hdodenhof.circleimageview.CircleImageView>
 
 
-
        <TextView
            android:id="@+id/show_text_message"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:layout_marginStart="6dp"
            android:layout_alignParentEnd="true"
            android:layout_alignParentRight="true"
-           android:text="testing msg"
-           android:textSize="18sp"
-           android:padding="8dp"
-           android:textColor="@color/white"
+           android:layout_marginStart="6dp"
            android:background="@drawable/background_right"
-           >
+           android:padding="8dp"
+           android:text="testing msg"
+           android:textColor="@color/white"
+           android:textSize="18sp">
 
        </TextView>
 
@@ -55,7 +53,6 @@
            android:id="@+id/text_seen"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:text="seen"
            android:layout_alignParentEnd="true"
            android:layout_alignParentRight="true"
            android:layout_below="@id/show_text_message"
